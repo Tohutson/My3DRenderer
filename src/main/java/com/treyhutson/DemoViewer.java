@@ -1,5 +1,6 @@
 package com.treyhutson;
 
+import com.treyhutson.Math.Barycentric;
 import com.treyhutson.Math.Matrix3;
 import com.treyhutson.Models.Triangle;
 import com.treyhutson.Models.Vertex;
@@ -37,6 +38,7 @@ public class DemoViewer {
                 tris.add(new Triangle(new Vertex(100, 100, 100), new Vertex(-100, -100, 100), new Vertex(100, -100, -100), Color.RED));
                 tris.add(new Triangle(new Vertex(-100, 100, -100), new Vertex(100, -100, -100), new Vertex(100, 100, 100), Color.GREEN));
                 tris.add(new Triangle(new Vertex(-100, 100, -100), new Vertex(100, -100, -100), new Vertex(-100, -100, 100), Color.BLUE));
+
                 double heading = Math.toRadians(headingSlider.getValue());
                 Matrix3 headingTransform = new Matrix3(new double[]{Math.cos(heading), 0, -Math.sin(heading), 0, 1, 0, Math.sin(heading), 0, Math.cos(heading)});
 
@@ -67,21 +69,17 @@ public class DemoViewer {
                     int minY = (int) Math.max(0, Math.ceil(Math.min(v1.getY(), Math.min(v2.getY(), v3.getY()))));
                     int maxY = (int) Math.min(img.getHeight() - 1, Math.floor(Math.max(v1.getY(), Math.max(v2.getY(), v3.getY()))));
 
-                    double triangleArea = (v1.getY() - v3.getY()) * (v2.getX() - v3.getX()) + (v2.getY() - v3.getY()) * (v3.getX() - v1.getX());
+                    Triangle screenTri = new Triangle(v1, v2, v3, t.getColor());
+                    Barycentric b = new Barycentric(screenTri);
 
                     for (int y = minY; y <= maxY; y++) {
                         for (int x = minX; x <= maxX; x++) {
-                            double b1 = ((y - v3.getY()) * (v2.getX() - v3.getX()) + (v2.getY() - v3.getY()) * (v3.getX() - x)) / triangleArea;
-                            double b2 = ((y - v1.getY()) * (v3.getX() - v1.getX()) + (v3.getY() - v1.getY()) * (v1.getX() - x)) / triangleArea;
-                            double b3 = ((y - v2.getY()) * (v1.getX() - v2.getX()) + (v1.getY() - v2.getY()) * (v2.getX() - x)) / triangleArea;
-                            if (b1 >= 0 && b1 <= 1 && b2 >= 0 && b2 <= 1 && b3 >= 0 && b3 <= 1) {
+                            if (b.isInside(x, y)) {
                                 img.setRGB(x, y, t.getColor().getRGB());
                             }
                         }
                     }
-
                 }
-
                 g2.drawImage(img, 0, 0, null);
             }
 
