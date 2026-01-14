@@ -1,6 +1,7 @@
 package com.treyhutson;
 
 import com.treyhutson.Math.Barycentric;
+import com.treyhutson.Math.DepthBuffer;
 import com.treyhutson.Math.Matrix3;
 import com.treyhutson.Models.Triangle;
 import com.treyhutson.Models.Vertex;
@@ -48,6 +49,7 @@ public class DemoViewer {
                 Matrix3 transform = headingTransform.multiply(pitchTransform);
 
                 BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+                DepthBuffer depthBuffer = new DepthBuffer(img.getWidth(), img.getHeight());
 
                 for (Triangle t : tris) {
                     Vertex v1 = transform.transform(t.getVertex1());
@@ -57,11 +59,11 @@ public class DemoViewer {
                     // since we are not using Graphics2D anymore,
                     // we have to do translation manually
                     v1.setX(v1.getX() + getWidth() / 2);
-                    v1.setY(v1.getY() + getWidth() / 2);
+                    v1.setY(v1.getY() + getHeight() / 2);
                     v2.setX(v2.getX() + getWidth() / 2);
-                    v2.setY(v2.getY() + getWidth() / 2);
+                    v2.setY(v2.getY() + getHeight() / 2);
                     v3.setX(v3.getX() + getWidth() / 2);
-                    v3.setY(v3.getY() + getWidth() / 2);
+                    v3.setY(v3.getY() + getHeight() / 2);
                     
                     // compute rectangular bounds for triangle
                     int minX = (int) Math.max(0, Math.ceil(Math.min(v1.getX(), Math.min(v2.getX(), v3.getX()))));
@@ -70,11 +72,11 @@ public class DemoViewer {
                     int maxY = (int) Math.min(img.getHeight() - 1, Math.floor(Math.max(v1.getY(), Math.max(v2.getY(), v3.getY()))));
 
                     Triangle screenTri = new Triangle(v1, v2, v3, t.getColor());
-                    Barycentric b = new Barycentric(screenTri);
+                    Barycentric b = new Barycentric(screenTri, depthBuffer);
 
                     for (int y = minY; y <= maxY; y++) {
                         for (int x = minX; x <= maxX; x++) {
-                            if (b.isInside(x, y)) {
+                            if (b.isInsideAndAbove(x, y)) {
                                 img.setRGB(x, y, t.getColor().getRGB());
                             }
                         }
