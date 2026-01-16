@@ -12,6 +12,8 @@ import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import static com.treyhutson.Math.Shader.getShade;
+
 public class DemoViewer {
     public static void main(String[] args) {
         JFrame frame = new JFrame("Demo Viewer");
@@ -55,6 +57,7 @@ public class DemoViewer {
                     Vertex v1 = transform.transform(t.getVertex1());
                     Vertex v2 = transform.transform(t.getVertex2());
                     Vertex v3 = transform.transform(t.getVertex3());
+                    Triangle transformedTri =  new Triangle(v1, v2, v3, t.getColor());
 
                     // since we are not using Graphics2D anymore,
                     // we have to do translation manually
@@ -77,7 +80,7 @@ public class DemoViewer {
                     for (int y = minY; y <= maxY; y++) {
                         for (int x = minX; x <= maxX; x++) {
                             if (b.isInsideAndAbove(x, y)) {
-                                img.setRGB(x, y, t.getColor().getRGB());
+                                img.setRGB(x, y, getShade(transformedTri.getColor(), transformedTri).getRGB());
                             }
                         }
                     }
