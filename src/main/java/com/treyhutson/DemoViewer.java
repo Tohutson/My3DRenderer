@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.treyhutson.Math.Shader.getShade;
 
@@ -36,11 +37,15 @@ public class DemoViewer {
                 g2.fillRect(0, 0, getWidth(), getHeight());
 
                 // rendering will be here
-                ArrayList<Triangle> tris = new ArrayList<>();
+                List<Triangle> tris = new ArrayList<>();
                 tris.add(new Triangle(new Vertex(100, 100, 100), new Vertex(-100, -100, 100), new Vertex(-100, 100, -100), Color.WHITE));
                 tris.add(new Triangle(new Vertex(100, 100, 100), new Vertex(-100, -100, 100), new Vertex(100, -100, -100), Color.RED));
                 tris.add(new Triangle(new Vertex(-100, 100, -100), new Vertex(100, -100, -100), new Vertex(100, 100, 100), Color.GREEN));
                 tris.add(new Triangle(new Vertex(-100, 100, -100), new Vertex(100, -100, -100), new Vertex(-100, -100, 100), Color.BLUE));
+
+                for (int i = 0; i < 4; i++) {
+                    tris = inflate(tris);
+                }
 
                 double heading = Math.toRadians(headingSlider.getValue());
                 Matrix3 headingTransform = new Matrix3(new double[]{Math.cos(heading), 0, -Math.sin(heading), 0, 1, 0, Math.sin(heading), 0, Math.cos(heading)});
@@ -95,5 +100,27 @@ public class DemoViewer {
         frame.setVisible(true);
         headingSlider.addChangeListener(e -> renderPanel.repaint());
         pitchSlider.addChangeListener(e -> renderPanel.repaint());
+    }
+
+    public static List<Triangle> inflate(List<Triangle> tris) {
+        List<Triangle> result = new ArrayList<>();
+        for (Triangle t : tris) {
+            Vertex m1 = new Vertex((t.getVertex1().getX() + t.getVertex2().getX())/2, (t.getVertex1().getY() + t.getVertex2().getY())/2, (t.getVertex1().getZ() + t.getVertex2().getZ())/2);
+            Vertex m2 = new Vertex((t.getVertex2().getX() + t.getVertex3().getX())/2, (t.getVertex2().getY() + t.getVertex3().getY())/2, (t.getVertex2().getZ() + t.getVertex3().getZ())/2);
+            Vertex m3 = new Vertex((t.getVertex1().getX() + t.getVertex3().getX())/2, (t.getVertex1().getY() + t.getVertex3().getY())/2, (t.getVertex1().getZ() + t.getVertex3().getZ())/2);
+            result.add(new Triangle(t.getVertex1(), m1, m3, t.getColor()));
+            result.add(new Triangle(t.getVertex2(), m1, m2, t.getColor()));
+            result.add(new Triangle(t.getVertex3(), m2, m3, t.getColor()));
+            result.add(new Triangle(m1, m2, m3, t.getColor()));
+        }
+        for (Triangle t : result) {
+            for (Vertex v : new Vertex[] { t.getVertex1(), t.getVertex2(), t.getVertex3() }) {
+                double l = Math.sqrt(v.getX() * v.getX() + v.getY() * v.getY() + v.getZ() * v.getZ()) / Math.sqrt(30000);
+                v.setX(v.getX() / l);
+                v.setY(v.getY() / l);
+                v.setZ(v.getZ() / l);
+            }
+        }
+        return result;
     }
 }
